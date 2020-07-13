@@ -4,12 +4,12 @@ import akka.actor.typed.BehaviorInterceptor.ReceiveTarget
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.Behaviors
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.reflect.ClassTag
 
 object BehaviourExtensions {
 
-  def withActorBoundEc[T: ClassTag](factory: ExecutionContext => Behavior[T]): Behavior[T] = {
+  def withActorBoundEc[T: ClassTag](factory: ExecutionContextExecutor => Behavior[T]): Behavior[T] = {
     Behaviors
       .setup[Any] { ctx =>
         Behaviors.intercept[Any, T](() => runnableInterceptor[T]) {
@@ -30,8 +30,8 @@ object BehaviourExtensions {
     }
   }
 
-  private def actorBoundEc(actorRef: ActorRef[Runnable]): ExecutionContext = {
-    new ExecutionContext {
+  private def actorBoundEc(actorRef: ActorRef[Runnable]): ExecutionContextExecutor = {
+    new ExecutionContextExecutor {
       override def execute(runnable: Runnable): Unit     = actorRef ! runnable
       override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
     }
