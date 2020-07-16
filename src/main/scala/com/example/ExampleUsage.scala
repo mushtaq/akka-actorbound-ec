@@ -15,36 +15,34 @@ object ExampleUsage {
 
   val exampleBehaviour: Behavior[Msg] = {
     Behaviors.setup { ctx =>
-      BehaviourExtensions.withActorBoundEc { actorBoundEc =>
-        ctx.self.unsafeUpcast
-        implicit val ec: ExecutionContextExecutor = actorBoundEc
+      ctx.self.unsafeUpcast
+      implicit val ec: ExecutionContextExecutor = ctx.executionContext
 
-        var total = 0
+      var total = 0
 
-        Behaviors.receiveMessage {
-          case CreateChild =>
-            Future {
-              ctx.spawnAnonymous(Behaviors.empty)
-              println("*************** success!")
-            }.recover {
-              case NonFatal(ex) => ex.printStackTrace()
-            }
-            Behaviors.same
+      Behaviors.receiveMessage {
+        case CreateChild =>
+          Future {
+            ctx.spawnAnonymous(Behaviors.empty)
+            println("*************** success!")
+          }.recover {
+            case NonFatal(ex) => ex.printStackTrace()
+          }
+          Behaviors.same
 
-          case Increment(requester) =>
-            // this will use the actorBoundEc
-            // actorBoundEc will send the callback as a 'Runnable' message to ctx.self
-            // runnableInterceptor will handle that message sequentially with other actor messages
-            Future {
-              total += 1
-              requester ! Done
-            }
-            Behaviors.same
+        case Increment(requester) =>
+          // this will use the actorBoundEc
+          // actorBoundEc will send the callback as a 'Runnable' message to ctx.self
+          // runnableInterceptor will handle that message sequentially with other actor messages
+          Future {
+            total += 1
+            requester ! Done
+          }
+          Behaviors.same
 
-          case GetTotal(requester) =>
-            requester ! total
-            Behaviors.same
-        }
+        case GetTotal(requester) =>
+          requester ! total
+          Behaviors.same
       }
     }
   }
