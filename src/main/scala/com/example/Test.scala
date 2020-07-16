@@ -20,12 +20,23 @@ object Test {
     import demo.executionContext
     implicit val schedule: Scheduler = demo.scheduler
 
-    // concurrent increments
-    Future.traverse(1 to 100000)(_ => demo.ask(Increment)).await
+    def test1(): Unit = {
+      demo ! CreateChild
+    }
 
-    val total = demo.ask(GetTotal)(timeout, demo.scheduler).await
+    def test2(): Unit = {
+      // concurrent increments
+      Future.traverse(1 to 100000)(_ => demo.ask(Increment)).await
+      val total = demo.ask(GetTotal)(timeout, demo.scheduler).await
 
-    // should be 100000, no lost update
-    println(total)
+      // should be 100000, no lost update
+      println(total)
+      demo.terminate()
+      Await.result(demo.whenTerminated, 5.seconds)
+    }
+
+//    test1()
+    test2()
   }
+
 }
