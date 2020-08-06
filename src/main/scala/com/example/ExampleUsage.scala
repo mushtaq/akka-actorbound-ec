@@ -4,7 +4,8 @@ import akka.Done
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.duration.DurationLong
+import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 import scala.util.control.NonFatal
 
 object ExampleUsage {
@@ -15,19 +16,19 @@ object ExampleUsage {
 
   val exampleBehaviour: Behavior[Msg] = {
     Behaviors.setup { ctx =>
-      ctx.self.unsafeUpcast
       implicit val ec: ExecutionContextExecutor = ctx.executionContext
 
       var total = 0
 
       Behaviors.receiveMessage {
         case CreateChild =>
-          Future {
+          val f = Future {
             ctx.spawnAnonymous(Behaviors.empty)
             println("*************** success!")
           }.recover {
             case NonFatal(ex) => ex.printStackTrace()
           }
+          Await.result(f, 5.seconds)
           Behaviors.same
 
         case Increment(requester) =>

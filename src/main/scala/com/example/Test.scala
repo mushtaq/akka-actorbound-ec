@@ -18,7 +18,7 @@ object Test {
   def main(args: Array[String]): Unit = {
     val demo = ActorSystem(exampleBehaviour, "demo")
     import demo.executionContext
-    implicit val schedule: Scheduler = demo.scheduler
+    implicit val scheduler: Scheduler = demo.scheduler
 
     def test1(): Unit = {
       demo ! CreateChild
@@ -35,8 +35,8 @@ object Test {
       Await.result(demo.whenTerminated, 5.seconds)
     }
 
-//    test1()
-    test2()
+    test1()
+//    test2()
   }
 
 }
